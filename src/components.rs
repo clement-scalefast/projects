@@ -1,0 +1,25 @@
+pub mod avatar;
+pub mod badge;
+pub mod breadcrumb;
+pub mod button;
+pub mod card;
+pub mod chart;
+pub mod dialog;
+pub mod dropdown_menu;
+pub mod field;
+pub mod floating;
+pub mod input;
+pub mod label;
+pub mod list_pagination;
+pub mod pagination;
+pub mod progress;
+pub mod select;
+pub mod separator;
+pub mod sheet;
+pub mod sidebar;
+pub mod skeleton;
+pub mod table;
+pub mod tabs;
+pub mod textarea;
+
+topcoat::l10n::fluent::messages!("{mod}/l10n/{locale}.ftl");

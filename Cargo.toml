@@ -1,0 +1,39 @@
+[package]
+name = "trackline"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+argon2 = "0.6"
+jiff = "0.2"
+serde = { version = "1", features = ["derive"] }
+toasty = { version = "0.11", features = ["jiff", "migration", "sqlite"] }
+toasty-cli = "0.11"
+# Names the transaction lock mode, which `toasty` does not re-export.
+toasty-core = "0.11"
+tokio = { version = "1.51.1", features = ["rt-multi-thread", "macros", "sync"] }
+topcoat = { version = "0.12.1", features = ["font-fontsource", "icon-iconify", "jiff", "l10n-datetime", "l10n-fluent", "tailwind", "ui"] }
+
+[build-dependencies]
+topcoat = { version = "0.12.1", default-features = false, features = ["icon-iconify", "tailwind"] }
+
+[dev-dependencies]
+topcoat-ui = "0.12.1"
+topcoat-ui-registry = { version = "0.12.1", features = ["embedded"] }
+
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+mod_module_files = "deny"
+pedantic = { level = "warn", priority = -1 }
+too_many_lines = "allow"
+
+# Speed up compilation while keeping file and line numbers in error backtraces.
+[profile.dev]
+debug = "line-tables-only"
+
+# Speed up compilation by skipping debug information for dependencies.
+[profile.dev.package."*"]
+debug = false

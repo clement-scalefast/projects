@@ -1,0 +1,72 @@
+mod _common;
+mod _workspace;
+mod language;
+pub mod login;
+mod logout;
+mod theme;
+
+use topcoat::{
+    Result,
+    asset::{AssetBundle, RouterBuilderAssetExt},
+    context::Cx,
+    cookie::CookieLayer,
+    font::{Font, fontsource::fontsource_font},
+    l10n::locale,
+    metadata::{Metadata, Robots},
+    router::{
+        Body, Next, RouterBuilder, RouterBuilderDiscoverExt, Slot, layer, layout, module_router,
+        response::Response,
+    },
+    runtime::RuntimeLayer,
+    tailwind,
+    view::{View, view},
+};
+
+use crate::features::{locale::preferred_locale, theme::theme};
+
+const GEIST: Font =
+    fontsource_font!(GEIST, weight: [400, 500, 600, 700], style: Normal, host: Asset);
+
+pub fn router() -> RouterBuilder {
+    module_router!()
+        .discover()
+        .assets(AssetBundle::load().unwrap())
+        .layer(CookieLayer::new())
+        // Register the runtime after the application layers so rerenders use them too.
+        .layer(RuntimeLayer::new())
+}
+
+/// Sets the language for every request, including shard updates.
+#[layer]
+async fn set_locale(cx: &Cx, body: Body, next: Next<'_>) -> Result<Response> {
+    let locale = preferred_locale(cx).clone();
+    next.run(&cx.with(locale), body).await
+}
+
+#[layout(
+    with(Metadata::new()
+        .title("Trackline")
+        .robots(Robots::new().index(false).follow(false)))
+)]
+async fn root(cx: &Cx, slot: Slot<'_>) -> Result<impl View> {
+    let theme = theme(cx);
+
+    Ok(view! {
+        <!DOCTYPE html>
+        <html
+            lang=(locale(cx).id())
+            dir=(locale(cx).id().direction())
+            class=(theme.class())
+            style=(theme.color_scheme())
+        >
+            <head>
+                topcoat::metadata::tags()
+                <link rel="stylesheet" href=(tailwind::stylesheet!())>
+                topcoat::font::link(font: GEIST)
+                topcoat::runtime::script()
+                topcoat::dev::script()
+            </head>
+            <body>(slot)</body>
+        </html>
+    })
+}
