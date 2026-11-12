@@ -2,6 +2,9 @@
 name = "projects"
 version = "0.1.0"
 edition = "2024"
+description = "A project management app with kanban boards, built with Topcoat."
+license = "MIT"
+repository = "https://github.com/clement-scalefast/projects"
 publish = false
 
 [dependencies]
