@@ -9,22 +9,22 @@ use crate::features::{
     user::{Role, User, hash_password},
 };
 
-pub const DEMO_PASSWORD: &str = "trackline";
+pub const DEMO_PASSWORD: &str = "projects";
 
 /// The accounts listed on the sign-in page, one per role.
 pub const DEMO_USERS: [(&str, &str, Role); 3] = [
-    ("Ada Lovelace", "ada@trackline.test", Role::Admin),
-    ("Grace Hopper", "grace@trackline.test", Role::Staff),
-    ("Alan Turing", "alan@trackline.test", Role::Viewer),
+    ("Ada Lovelace", "ada@projects.test", Role::Admin),
+    ("Grace Hopper", "grace@projects.test", Role::Staff),
+    ("Alan Turing", "alan@projects.test", Role::Viewer),
 ];
 
 /// More members so issues have a team to be assigned to.
 const TEAMMATES: [(&str, &str); 5] = [
-    ("Katherine Johnson", "katherine@trackline.test"),
-    ("Edsger Dijkstra", "edsger@trackline.test"),
-    ("Hedy Lamarr", "hedy@trackline.test"),
-    ("Dennis Ritchie", "dennis@trackline.test"),
-    ("Annie Easley", "annie@trackline.test"),
+    ("Katherine Johnson", "katherine@projects.test"),
+    ("Edsger Dijkstra", "edsger@projects.test"),
+    ("Hedy Lamarr", "hedy@projects.test"),
+    ("Dennis Ritchie", "dennis@projects.test"),
+    ("Annie Easley", "annie@projects.test"),
 ];
 
 struct ProjectSeed {

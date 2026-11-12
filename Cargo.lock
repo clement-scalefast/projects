@@ -2720,6 +2720,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "projects"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "jiff",
+ "serde",
+ "toasty",
+ "toasty-cli",
+ "toasty-core",
+ "tokio",
+ "topcoat",
+ "topcoat-ui",
+ "topcoat-ui-registry",
+]
+
+[[package]]
 name = "prost"
 version = "0.14.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4712,22 +4728,6 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
-]
-
-[[package]]
-name = "trackline"
-version = "0.1.0"
-dependencies = [
- "argon2",
- "jiff",
- "serde",
- "toasty",
- "toasty-cli",
- "toasty-core",
- "tokio",
- "topcoat",
- "topcoat-ui",
- "topcoat-ui-registry",
 ]
 
 [[package]]

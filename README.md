@@ -1,6 +1,6 @@
-# Trackline
+# Projects
 
-Trackline is a project management app in the style of Jira or GitHub Projects. Teams organize work into projects, track it as issues on a kanban board, and discuss it in comments. The app uses [Topcoat](https://github.com/tokio-rs/topcoat) with Toasty and SQLite, session cookies for sign-in, and Topcoat UI components. It is available in English and German.
+Projects is a project management app in the style of Jira or GitHub Projects. Teams organize work into projects, track it as issues on a kanban board, and discuss it in comments. The app uses [Topcoat](https://github.com/tokio-rs/topcoat) with Toasty and SQLite, session cookies for sign-in, and Topcoat UI components. It is available in English and German.
 
 Install the Topcoat command-line tool and start the app:
 

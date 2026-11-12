@@ -45,7 +45,7 @@ async fn set_locale(cx: &Cx, body: Body, next: Next<'_>) -> Result<Response> {
 
 #[layout(
     with(Metadata::new()
-        .title("Trackline")
+        .title("Projects")
         .robots(Robots::new().index(false).follow(false)))
 )]
 async fn root(cx: &Cx, slot: Slot<'_>) -> Result<impl View> {

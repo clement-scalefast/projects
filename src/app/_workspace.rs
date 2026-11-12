@@ -195,7 +195,7 @@ async fn app_sidebar(
                         ))
                     >
                         icon(data: iconify_icon!("lucide:square-kanban"))
-                        <span class="font-semibold">"Trackline"</span>
+                        <span class="font-semibold">"Projects"</span>
                     </div>
                     button(
                         variant: ButtonVariant::Ghost,
@@ -309,7 +309,7 @@ async fn page_breadcrumb(cx: &Cx) -> Result<impl View> {
     Ok(view! {
         breadcrumb(
             breadcrumb_list(
-                breadcrumb_item("Trackline")
+                breadcrumb_item("Projects")
                 breadcrumb_separator()
                 breadcrumb_item(
                     if href.is_current(cx) {

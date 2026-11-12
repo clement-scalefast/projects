@@ -83,7 +83,7 @@ pub async fn page(cx: &Cx) -> Result<impl View> {
 
             <p class="flex items-center gap-2 text-lg font-semibold">
                 icon(data: iconify_icon!("lucide:square-kanban"))
-                "Trackline"
+                "Projects"
             </p>
 
             card(
