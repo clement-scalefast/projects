@@ -2,9 +2,14 @@
 
 Projects is a project management app in the style of Jira or GitHub Projects. Teams organize work into projects, track it as issues on a kanban board, and discuss it in comments. The app uses [Topcoat](https://github.com/tokio-rs/topcoat) with Toasty and SQLite, session cookies for sign-in, and Topcoat UI components. It is available in English and German.
 
-Install the Topcoat command-line tool and start the app:
+[![CI](https://github.com/clement-scalefast/projects/actions/workflows/ci.yml/badge.svg)](https://github.com/clement-scalefast/projects/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Clone the repository, install the Topcoat command-line tool, and start the app:
 
 ```sh
+git clone https://github.com/clement-scalefast/projects.git
+cd projects
 cargo install topcoat-cli
 topcoat dev
 ```
@@ -62,3 +67,11 @@ Run `topcoat ui add <name> --overwrite` to update a component from the registry.
 ## Formatting
 
 Run `cargo fmt` and then `topcoat fmt`, which formats the bodies of macros such as `view!`.
+
+## Contributing
+
+Bug reports, ideas, and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) to get started and the [code of conduct](CODE_OF_CONDUCT.md) before taking part. Report security problems privately as described in [SECURITY.md](SECURITY.md).
+
+## License
+
+Projects is released under the [MIT license](LICENSE). It is derived from the admin demo of [Topcoat](https://github.com/tokio-rs/topcoat), which is also MIT-licensed.

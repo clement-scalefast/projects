@@ -2,6 +2,9 @@
 name = "projects"
 version = "0.1.0"
 edition = "2024"
+description = "A project management app with kanban boards, built with Topcoat."
+license = "MIT"
+repository = "https://github.com/clement-scalefast/projects"
 publish = false
 
 [dependencies]
@@ -29,6 +32,8 @@ unsafe_code = "deny"
 mod_module_files = "deny"
 pedantic = { level = "warn", priority = -1 }
 too_many_lines = "allow"
+# Toasty's derive macros generate items with underscore-prefixed names.
+used_underscore_items = "allow"
 
 # Speed up compilation while keeping file and line numbers in error backtraces.
 [profile.dev]
