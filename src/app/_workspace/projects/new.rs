@@ -43,7 +43,7 @@ pub async fn page(cx: &Cx) -> Result<impl View> {
         },
         |rejected| rejected.form.clone(),
     );
-    let errors = rejected.map(|rejected| rejected.errors).unwrap_or_default();
+    let errors = rejected.map_or_default(|rejected| rejected.errors);
     let users = User::list(cx).await?;
     let form_id = element_id(cx);
 

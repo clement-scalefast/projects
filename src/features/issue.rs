@@ -546,7 +546,7 @@ impl IssueForm {
     /// An empty form for a new issue, with the project preselected if given.
     pub fn new(project: Option<u64>) -> Self {
         Self {
-            project: project.map(|id| id.to_string()).unwrap_or_default(),
+            project: project.map_or_default(|id| id.to_string()),
             title: String::new(),
             description: String::new(),
             kind: IssueKind::Task,
@@ -565,11 +565,8 @@ impl IssueForm {
             kind: issue.kind,
             status: issue.status,
             priority: issue.priority,
-            assignee: issue
-                .assignee_id
-                .map(|id| id.to_string())
-                .unwrap_or_default(),
-            due_on: issue.due_on.map(|due| due.to_string()).unwrap_or_default(),
+            assignee: issue.assignee_id.map_or_default(|id| id.to_string()),
+            due_on: issue.due_on.map_or_default(|due| due.to_string()),
         }
     }
 

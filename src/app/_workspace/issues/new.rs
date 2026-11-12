@@ -55,7 +55,7 @@ pub async fn page(cx: &Cx) -> Result<impl View> {
         Some(rejected) => rejected.form.clone(),
         None => IssueForm::new(query_params::<NewIssueQuery>(cx)?.project),
     };
-    let errors = rejected.map(|rejected| rejected.errors).unwrap_or_default();
+    let errors = rejected.map_or_default(|rejected| rejected.errors);
     let projects = Project::names(cx).await?;
     let users = User::list(cx).await?;
     let form_id = element_id(cx);

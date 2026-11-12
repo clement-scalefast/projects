@@ -80,7 +80,7 @@ pub async fn page(cx: &Cx) -> Result<impl View> {
     let user = require_user(cx).await?;
     let query = query_params::<IssuesQuery>(cx)?;
     let projects = Project::names(cx).await?;
-    let initial_project = query.project.map(|id| id.to_string()).unwrap_or_default();
+    let initial_project = query.project.map_or_default(|id| id.to_string());
     let initial_status = query.status.map_or("", IssueStatus::slug);
     let initial_priority = query.priority.map_or("", Priority::slug);
     let initial_sort = query.sort.unwrap_or_default().slug();
