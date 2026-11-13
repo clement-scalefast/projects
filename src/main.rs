@@ -22,7 +22,12 @@ async fn main() {
     db::migrate(&db).await.unwrap();
     seed::seed(&db).await.unwrap();
 
-    topcoat::start(app::router().with(db).build())
-        .await
-        .unwrap();
+    topcoat::start(
+        app::router()
+            .with(db)
+            .with(features::keycloak::Keycloak::from_env())
+            .build(),
+    )
+    .await
+    .unwrap();
 }

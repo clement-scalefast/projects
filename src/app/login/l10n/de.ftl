@@ -1,11 +1,8 @@
 sign_in = Anmelden
-    .description = Melde dich mit deinem Teamkonto an, um Arbeit zu planen und zu verfolgen.
-email = E-Mail
-password = Passwort
+    .description = Melde dich mit deinem Teamkonto an, um Arbeit zu planen und zu verfolgen. Keycloak prüft dein Passwort.
+    .with_keycloak = Mit Keycloak anmelden
 
-error_email_missing = Gib deine E-Mail-Adresse ein.
-error_password_missing = Gib dein Passwort ein.
-error_wrong_credentials = E-Mail-Adresse oder Passwort ist falsch.
+error_sign_in_failed = Die Anmeldung wurde nicht abgeschlossen. Versuche es erneut.
 
 # Das Passwort folgt nach `.description`.
 demo_accounts = Demokonten

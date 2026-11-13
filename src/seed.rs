@@ -6,7 +6,7 @@ use crate::features::{
     issue::{Comment, Issue, IssueKind, IssueStatus, Priority},
     project::Project,
     stats::today,
-    user::{Role, User, hash_password},
+    user::{Role, User},
 };
 
 pub const DEMO_PASSWORD: &str = "projects";
@@ -220,18 +220,7 @@ pub async fn seed(db: &Db) -> toasty::Result<()> {
 async fn seed_users(db: &mut Db) -> toasty::Result<()> {
     let teammates = TEAMMATES.map(|(name, email)| (name, email, Role::Staff));
     for (name, email, role) in DEMO_USERS.into_iter().chain(teammates) {
-        let password_hash = tokio::task::spawn_blocking(|| hash_password(DEMO_PASSWORD))
-            .await
-            .expect("hashing a password does not panic");
-
-        toasty::create!(User {
-            name,
-            email,
-            password_hash: &password_hash,
-            role,
-        })
-        .exec(db)
-        .await?;
+        User::invite(db, name, email, role).await?;
     }
 
     Ok(())

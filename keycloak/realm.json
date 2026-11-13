@@ -1,0 +1,83 @@
+{
+  "realm": "projects",
+  "displayName": "Projects",
+  "enabled": true,
+  "registrationEmailAsUsername": true,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Manages projects and everything members can do." },
+      { "name": "staff", "description": "Creates and changes issues and comments." },
+      { "name": "viewer", "description": "Reads everything but changes nothing." }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "projects",
+      "name": "Projects",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "projects-dev-secret",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/login/callback",
+        "http://127.0.0.1:3000/login/callback"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/login##http://127.0.0.1:3000/login"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "ada@projects.test",
+      "email": "ada@projects.test",
+      "firstName": "Ada",
+      "lastName": "Lovelace",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "projects", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "grace@projects.test",
+      "email": "grace@projects.test",
+      "firstName": "Grace",
+      "lastName": "Hopper",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "projects", "temporary": false }],
+      "realmRoles": ["staff"]
+    },
+    {
+      "username": "alan@projects.test",
+      "email": "alan@projects.test",
+      "firstName": "Alan",
+      "lastName": "Turing",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "projects", "temporary": false }],
+      "realmRoles": ["viewer"]
+    }
+  ]
+}

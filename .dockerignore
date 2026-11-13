@@ -1,0 +1,8 @@
+/target
+/.git
+/.github
+/data.db*
+/uploads
+Dockerfile
+docker-compose.yml
+*.md

@@ -14,4 +14,4 @@ Only the latest commit on `main` receives security fixes.
 
 ## Scope
 
-The demo accounts and their shared password are sample data for local development and are not a vulnerability. Remove them before deploying the app anywhere reachable by others.
+The demo accounts and their shared password, the Keycloak client secret in `keycloak/realm.json`, and the Keycloak admin password in `docker-compose.yml` are sample data for local development and are not a vulnerability. Replace them before deploying the app anywhere reachable by others.

@@ -6,7 +6,6 @@ use toasty::{
     schema::Model,
     stmt::{Expr, List},
 };
-use toasty_core::driver::operation::TransactionMode;
 use tokio::sync::Mutex;
 use topcoat::{Result, context::Cx};
 
@@ -168,15 +167,15 @@ impl Issue {
         };
 
         // Number one issue at a time. Requests in this process queue here without
-        // holding a database connection. The transaction then takes the database's
-        // write lock before reading the last number, which also keeps out other
-        // processes that share the database file.
+        // holding a database connection. The transaction then locks the project's
+        // row before reading the last number, which also keeps out other processes
+        // that share the database.
         let _numbering = NUMBERING.lock().await;
         let mut db = db(cx);
-        let mut tx = db
-            .transaction_builder()
-            .mode(TransactionMode::Immediate)
-            .begin()
+        let mut tx = db.transaction().await?;
+        toasty::sql::query(r#"SELECT "id" FROM "projects" WHERE "id" = $1 FOR UPDATE"#)
+            .bind(project.id)
+            .exec(&mut tx)
             .await?;
         let last = Issue::filter_by_project_id(project.id)
             .order_by(Issue::fields().number().desc())
@@ -481,8 +480,8 @@ impl IssueSearch<'_> {
             let pattern = contains_pattern(text);
             let mut matches = fields
                 .title()
-                .like_with_escape(pattern.clone(), '\\')
-                .or(fields.project().code().like_with_escape(pattern, '\\'));
+                .ilike_with_escape(pattern.clone(), '\\')
+                .or(fields.project().code().ilike_with_escape(pattern, '\\'));
             if let Some((code, number)) = parse_key(text) {
                 let number = fields.number().eq(number);
                 matches = matches.or(match code {
