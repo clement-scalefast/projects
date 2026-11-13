@@ -8,13 +8,15 @@ repository = "https://github.com/clement-scalefast/projects"
 publish = false
 
 [dependencies]
-argon2 = "0.6"
+base64 = "0.23"
 jiff = "0.2"
+rand = "0.10"
+reqwest = { version = "0.13", default-features = false, features = ["rustls", "json", "form"] }
 serde = { version = "1", features = ["derive"] }
-toasty = { version = "0.11", features = ["jiff", "migration", "sqlite"] }
+serde_json = "1"
+sha2 = "0.11"
+toasty = { version = "0.11", features = ["jiff", "migration", "postgresql"] }
 toasty-cli = "0.11"
-# Names the transaction lock mode, which `toasty` does not re-export.
-toasty-core = "0.11"
 tokio = { version = "1.51.1", features = ["rt-multi-thread", "macros", "sync"] }
 topcoat = { version = "0.12.1", features = ["font-fontsource", "icon-iconify", "jiff", "l10n-datetime", "l10n-fluent", "tailwind", "ui"] }
 

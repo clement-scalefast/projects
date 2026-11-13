@@ -1,8 +1,6 @@
-use argon2::{
-    Argon2,
-    password_hash::{PasswordHasher, PasswordVerifier, phc::PasswordHash},
-};
-use topcoat::{Result, context::Cx, router::error::internal_server_error};
+use topcoat::{Result, context::Cx};
+
+use super::keycloak::Identity;
 
 use crate::db::db;
 
@@ -18,31 +16,69 @@ pub struct User {
     #[unique]
     pub email: String,
 
-    /// Password hash in Argon2 PHC format.
-    password_hash: String,
+    /// Keycloak's ID of the user. Empty until the user signs in for the first time.
+    #[unique]
+    subject: Option<String>,
 
     pub role: Role,
 }
 
 impl User {
-    /// Checks the credentials and returns the user, or `None` if they do not match.
-    pub async fn authenticate(cx: &Cx, email: &str, password: String) -> Result<Option<User>> {
-        let user = User::filter_by_email(email.trim().to_lowercase())
-            .first()
-            .exec(&mut db(cx))
-            .await?;
+    /// Returns the team member for a person Keycloak signed in, with the name,
+    /// email, and role that Keycloak reports. A person who signs in for the first
+    /// time takes over the member with the same email, or becomes a new member.
+    pub async fn from_identity(cx: &Cx, identity: &Identity) -> Result<User> {
+        let mut db = db(cx);
+        let subject = Some(identity.subject.clone());
 
-        let Some(user) = user else {
-            return Ok(None);
+        let mut user = User::filter_by_subject(subject.clone())
+            .first()
+            .exec(&mut db)
+            .await?;
+        if user.is_none() {
+            user = User::filter_by_email(&identity.email)
+                .first()
+                .exec(&mut db)
+                .await?;
+        }
+
+        let Some(mut user) = user else {
+            let user = toasty::create!(User {
+                name: &identity.name,
+                email: &identity.email,
+                subject,
+                role: identity.role,
+            })
+            .exec(&mut db)
+            .await?;
+            return Ok(user);
         };
 
-        let password_hash = user.password_hash.clone();
-        let matches =
-            tokio::task::spawn_blocking(move || verify_password(&password, &password_hash))
-                .await
-                .map_err(internal_server_error)?;
+        user.update()
+            .name(&identity.name)
+            .email(&identity.email)
+            .subject(subject)
+            .role(identity.role)
+            .exec(&mut db)
+            .await?;
+        Ok(user)
+    }
 
-        Ok(matches.then_some(user))
+    /// Adds a team member who has not signed in yet.
+    pub async fn invite(
+        db: &mut toasty::Db,
+        name: &str,
+        email: &str,
+        role: Role,
+    ) -> toasty::Result<User> {
+        toasty::create!(User {
+            name,
+            email,
+            subject: None::<String>,
+            role,
+        })
+        .exec(db)
+        .await
     }
 
     pub async fn find(cx: &Cx, id: u64) -> Result<Option<User>> {
@@ -88,21 +124,4 @@ impl Role {
     pub fn can_manage(self) -> bool {
         matches!(self, Self::Admin)
     }
-}
-
-/// Creates a salted Argon2 password hash. This is CPU-intensive; use
-/// [`tokio::task::spawn_blocking`] when calling it from async code.
-pub fn hash_password(password: &str) -> String {
-    Argon2::default()
-        .hash_password(password.as_bytes())
-        .expect("hashing a password with the default parameters succeeds")
-        .to_string()
-}
-
-fn verify_password(password: &str, password_hash: &str) -> bool {
-    PasswordHash::new(password_hash).is_ok_and(|hash| {
-        Argon2::default()
-            .verify_password(password.as_bytes(), &hash)
-            .is_ok()
-    })
 }

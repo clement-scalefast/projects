@@ -1,5 +1,6 @@
-//! Topcoat keeps the session token in a cookie. The database stores its hash,
-//! the user ID, and the expiry time.
+//! Keycloak signs users in; see [`super::keycloak`]. The app then keeps its own
+//! session. Topcoat keeps the session token in a cookie. The database stores its
+//! hash, the user ID, and the expiry time.
 
 use jiff::Timestamp;
 use topcoat::{
@@ -28,9 +29,13 @@ pub struct Session {
     user: toasty::Deferred<User>,
 
     expires_at: Timestamp,
+
+    /// The ID token from Keycloak, kept to sign the user out there too.
+    id_token: Option<String>,
 }
 
-pub async fn sign_in(cx: &Cx, user: &User) -> Result<()> {
+/// Starts a session for a user that Keycloak signed in.
+pub async fn sign_in(cx: &Cx, user: &User, id_token: &str) -> Result<()> {
     let session = session::start(cx).await?;
     let expires_at = Timestamp::try_from(session.expires_at).map_err(internal_server_error)?;
 
@@ -38,6 +43,7 @@ pub async fn sign_in(cx: &Cx, user: &User) -> Result<()> {
         token_hash: session.token_hash.to_vec(),
         user_id: user.id,
         expires_at,
+        id_token: Some(id_token.to_owned()),
     })
     .exec(&mut db(cx))
     .await?;
@@ -45,14 +51,22 @@ pub async fn sign_in(cx: &Cx, user: &User) -> Result<()> {
     Ok(())
 }
 
-pub async fn sign_out(cx: &Cx) -> Result<()> {
-    if let Some(token_hash) = session::stop(cx).await? {
-        Session::filter_by_token_hash(token_hash.to_vec())
-            .delete()
-            .exec(&mut db(cx))
-            .await?;
-    }
-    Ok(())
+/// Ends the session and returns its ID token, if it had one.
+pub async fn sign_out(cx: &Cx) -> Result<Option<String>> {
+    let Some(token_hash) = session::stop(cx).await? else {
+        return Ok(None);
+    };
+
+    let mut db = db(cx);
+    let session = Session::filter_by_token_hash(token_hash.to_vec())
+        .first()
+        .exec(&mut db)
+        .await?;
+    Session::filter_by_token_hash(token_hash.to_vec())
+        .delete()
+        .exec(&mut db)
+        .await?;
+    Ok(session.and_then(|session| session.id_token))
 }
 
 /// Returns the signed-in user, or `None` if the session is missing or expired.

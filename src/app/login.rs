@@ -1,81 +1,43 @@
-use serde::Deserialize;
+mod callback;
+mod start;
+
 use topcoat::{
     Result,
-    context::{Cx, try_context},
+    context::Cx,
     icon::{icon, iconify::iconify_icon},
-    l10n::{Translation, fluent::messages},
-    router::{
-        Body, Method, StatusCode,
-        content::Form,
-        error::{SeeOther, redirect, rewrite, see_other},
-        href, page, route,
-    },
-    view::{View, attributes, element_id, view},
+    l10n::fluent::messages,
+    router::{error::redirect, href, page, query_params},
+    view::{View, attributes, view},
 };
 
 use super::{_common::role_label, language::language_menu};
 use crate::{
     components::{
         badge::{BadgeVariant, badge},
-        button::button,
+        button::{ButtonSize, ButtonVariant, button_variants},
         card::{card, card_content, card_description, card_footer, card_header, card_title},
-        field::{field, field_error, field_group, field_label},
-        input::input,
     },
-    features::{
-        auth::{current_user, sign_in},
-        user::User,
-    },
+    features::auth::current_user,
     seed::{DEMO_PASSWORD, DEMO_USERS},
 };
 
 messages!("{mod}/l10n/{locale}.ftl");
 
-struct SignInFailed {
-    email: String,
-    email_error: Option<SignInError>,
-    password_error: Option<SignInError>,
+#[query_params(error = redirect("?"))]
+struct LoginQuery {
+    /// Present when a sign-in at Keycloak did not complete.
+    failed: Option<String>,
 }
 
-#[derive(Clone, Copy)]
-enum SignInError {
-    EmailMissing,
-    PasswordMissing,
-    WrongCredentials,
-}
-
-impl SignInError {
-    fn message(self) -> Translation<'static> {
-        match self {
-            Self::EmailMissing => t!(error_email_missing),
-            Self::PasswordMissing => t!(error_password_missing),
-            Self::WrongCredentials => t!(error_wrong_credentials),
-        }
-    }
-}
-
+/// Explains that Keycloak handles sign-in and links to it. Signing out returns here.
 #[page]
 pub async fn page(cx: &Cx) -> Result<impl View> {
     if current_user(cx).await?.is_some() {
         return Err(redirect(href!(super::_workspace::_dashboard::page).resolve(cx)).into());
     }
-
-    let failed = try_context::<SignInFailed>(cx);
-    let email = failed.map(|failed| failed.email.as_str());
-    let email_error = failed.and_then(|failed| failed.email_error);
-    let password_error = failed.and_then(|failed| failed.password_error);
-
-    let form_id = element_id(cx);
-    let email_id = element_id(cx);
-    let email_error_id = element_id(cx);
-    let password_id = element_id(cx);
-    let password_error_id = element_id(cx);
+    let failed = query_params::<LoginQuery>(cx)?.failed.is_some();
 
     Ok(view! {
-        if failed.is_some() {
-            (StatusCode::UNPROCESSABLE_ENTITY)
-        }
-
         <main
             class="relative flex min-h-svh flex-col items-center justify-center gap-6 p-6"
         >
@@ -92,72 +54,23 @@ pub async fn page(cx: &Cx) -> Result<impl View> {
                     card_title((t!(sign_in)))
                     card_description((t!(sign_in.description)))
                 )
-                card_content(
-                    // Disable browser validation so the form shows the server's field errors.
-                    <form
-                        id=(&form_id)
-                        method="post"
-                        action=(href!(submit))
-                        novalidate=""
-                    >
-                        field_group(
-                            field(
-                                field_label(
-                                    attrs: attributes! { for=(&email_id) },
-                                    (t!(email))
-                                )
-                                input(
-                                    attrs: attributes! {
-                                        id=(&email_id)
-                                        name="email"
-                                        type="email"
-                                        autocomplete="username"
-                                        value=(email)
-                                        aria-invalid=(email_error.is_some().then_some("true"))
-                                        aria-describedby=(email_error
-                                            .is_some()
-                                            .then_some(&email_error_id))
-                                    }
-                                )
-                                if let Some(error) = email_error {
-                                    field_error(
-                                        attrs: attributes! { id=(&email_error_id) },
-                                        (error.message())
-                                    )
-                                }
-                            )
-                            field(
-                                field_label(
-                                    attrs: attributes! { for=(&password_id) },
-                                    (t!(password))
-                                )
-                                input(
-                                    attrs: attributes! {
-                                        id=(&password_id)
-                                        name="password"
-                                        type="password"
-                                        autocomplete="current-password"
-                                        aria-invalid=(password_error.is_some().then_some("true"))
-                                        aria-describedby=(password_error
-                                            .is_some()
-                                            .then_some(&password_error_id))
-                                    }
-                                )
-                                if let Some(error) = password_error {
-                                    field_error(
-                                        attrs: attributes! { id=(&password_error_id) },
-                                        (error.message())
-                                    )
-                                }
-                            )
-                        )
-                    </form>
-                )
-                card_footer(
-                    button(
-                        attrs: attributes! { type="submit" form=(&form_id) class="w-full" },
-                        (t!(sign_in))
+                if failed {
+                    card_content(
+                        <p role="alert" class="text-sm text-destructive">
+                            (t!(error_sign_in_failed))
+                        </p>
                     )
+                }
+                card_footer(
+                    <a
+                        href=(href!(start::start))
+                        class=((
+                            button_variants(ButtonVariant::Primary, ButtonSize::Md),
+                            "w-full",
+                        ))
+                    >
+                        (t!(sign_in.with_keycloak))
+                    </a>
                 )
             )
 
@@ -195,37 +108,4 @@ async fn demo_accounts(cx: &Cx) -> Result<impl View> {
             )
         )
     })
-}
-
-#[derive(Deserialize)]
-struct Credentials {
-    email: String,
-    password: String,
-}
-
-#[route(POST)]
-async fn submit(cx: &Cx, Form(credentials): Form<Credentials>) -> Result<SeeOther> {
-    let Credentials { email, password } = credentials;
-    let mut email_error = email.trim().is_empty().then_some(SignInError::EmailMissing);
-    let password_error = password.is_empty().then_some(SignInError::PasswordMissing);
-
-    if email_error.is_none() && password_error.is_none() {
-        if let Some(user) = User::authenticate(cx, &email, password).await? {
-            sign_in(cx, &user).await?;
-            return Ok(see_other(
-                href!(super::_workspace::_dashboard::page).resolve(cx),
-            ));
-        }
-        email_error = Some(SignInError::WrongCredentials);
-    }
-
-    // Rewrite the POST to keep the submitted email and errors in the request context.
-    Err(rewrite(href!(page).resolve(cx), Body::empty())
-        .method(Method::GET)
-        .with(SignInFailed {
-            email,
-            email_error,
-            password_error,
-        })
-        .into())
 }

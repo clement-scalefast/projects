@@ -10,16 +10,17 @@ Thanks for helping improve Projects. Bug reports, ideas, translations, and pull 
 
 ## Setting up
 
-You need a stable Rust toolchain and the Topcoat command-line tool:
+You need a stable Rust toolchain, the Topcoat command-line tool, and Docker for the PostgreSQL database and Keycloak:
 
 ```sh
 git clone https://github.com/clement-scalefast/projects.git
 cd projects
+docker compose up -d db keycloak
 cargo install topcoat-cli
 topcoat dev
 ```
 
-The app runs at `http://127.0.0.1:3000` and reloads when you change a file. The sign-in page lists the demo accounts. Delete `data.db` to reset the sample data. The [README](README.md) explains where each part of the app lives.
+The app runs at `http://localhost:3000` and reloads when you change a file. The sign-in page lists the demo accounts. Run `docker compose down --volumes` to reset the sample data. To use another PostgreSQL server, set `DATABASE_URL`. The [README](README.md) explains where each part of the app lives.
 
 ## Before you open a pull request
 
@@ -36,7 +37,7 @@ topcoat l10n check
 Also check these, where they apply:
 
 - **Translations**: the app is available in English and German. When you add or change text, update both `en.ftl` and `de.ftl` in the module's `l10n/` directory. If you do not speak German, say so in the pull request and someone will help.
-- **Database changes**: when you change a model, generate a migration with `cargo run -- toasty migration generate --name <name>` and commit the files it creates in `toasty/`.
+- **Database changes**: when you change a model, generate a migration with `cargo run -- toasty migration generate --name <name>` while the database is running, and commit the files it creates in `toasty/`.
 - **Permissions**: pages hide controls a role cannot use, but every route, shard, and procedure must check the role itself.
 - **Registry components**: files in `src/components/` are copies from the Topcoat UI registry, except those listed in `OWN_COMPONENTS` in `tests/registry_sync.rs`. Do not edit the copies; a test compares them with the registry.
 

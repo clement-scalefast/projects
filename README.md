@@ -1,20 +1,52 @@
 # Projects
 
-Projects is a project management app in the style of Jira or GitHub Projects. Teams organize work into projects, track it as issues on a kanban board, and discuss it in comments. The app uses [Topcoat](https://github.com/tokio-rs/topcoat) with Toasty and SQLite, session cookies for sign-in, and Topcoat UI components. It is available in English and German.
+Projects is a project management app in the style of Jira or GitHub Projects. Teams organize work into projects, track it as issues on a kanban board, and discuss it in comments. The app uses [Topcoat](https://github.com/tokio-rs/topcoat) with Toasty and PostgreSQL, [Keycloak](https://www.keycloak.org) for sign-in, and Topcoat UI components. It is available in English and German.
 
 [![CI](https://github.com/clement-scalefast/projects/actions/workflows/ci.yml/badge.svg)](https://github.com/clement-scalefast/projects/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Clone the repository, install the Topcoat command-line tool, and start the app:
+The quickest way to run the app is Docker Compose, which builds the app and starts it with a PostgreSQL database and a Keycloak server:
 
 ```sh
 git clone https://github.com/clement-scalefast/projects.git
 cd projects
+docker compose up --build
+```
+
+The app runs at `http://localhost:3000`. On startup, it applies database migrations and adds sample data if the database is empty. The sign-in page shows the demo accounts and password. Run `docker compose down --volumes` to delete the database and the Keycloak data and start over.
+
+To work on the app, start only the database and Keycloak, and run the app on your machine with the Topcoat command-line tool:
+
+```sh
+docker compose up -d db keycloak
 cargo install topcoat-cli
 topcoat dev
 ```
 
-The app runs at `http://127.0.0.1:3000`. Set `PORT` to use another port. On startup, it applies database migrations and adds sample data if the database is empty. The database is stored in `data.db`. The sign-in page shows the demo accounts and password. Stop the app and delete the database to reset it.
+The app connects to the database named by `DATABASE_URL`. Without it, the app uses `postgresql://projects:projects@127.0.0.1:5432/projects`, which is the Compose database. Set `POSTGRES_PORT` to publish the database on another port, and `POSTGRES_PASSWORD` to change its password before the first start.
+
+## Signing in
+
+Keycloak signs users in with OpenID Connect. The app has no passwords of its own: the sign-in page sends the browser to Keycloak, and Keycloak sends it back with the user's name, email, and roles. The app then keeps its own session in a cookie. Signing out ends both the app's session and the Keycloak session.
+
+Compose imports the realm in [`keycloak/realm.json`](keycloak/realm.json) the first time Keycloak starts. It contains the `projects` client, the demo accounts, and three realm roles. Manage users in the Keycloak admin console at `http://localhost:8080` (user `admin`, password `admin`):
+
+- A user needs an email address to sign in to the app.
+- The realm role `admin`, `staff`, or `viewer` sets what the user may do. A user with none of them can only read.
+- A user appears on the team page after signing in for the first time. Changes to the name, email, or roles apply at the next sign-in.
+
+To use another Keycloak server, create a confidential OpenID Connect client that allows the redirect URI `<app URL>/login/callback` and the post-logout redirect URI `<app URL>/login`. Add a "User Realm Role" mapper that puts the roles in a multivalued `roles` claim of the ID token. Then set these variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `KEYCLOAK_URL` | `http://localhost:8080` | Keycloak's URL as browsers reach it. |
+| `KEYCLOAK_INTERNAL_URL` | the value of `KEYCLOAK_URL` | Keycloak's URL as the app reaches it, when that differs. |
+| `KEYCLOAK_REALM` | `projects` | The realm. |
+| `KEYCLOAK_CLIENT_ID` | `projects` | The client ID. |
+| `KEYCLOAK_CLIENT_SECRET` | `projects-dev-secret` | The client secret. |
+| `APP_URL` | `http://` and the request's host | The app's public URL. Set it when the app is served over HTTPS or behind a proxy. |
+
+The Compose setup runs Keycloak in development mode with a published client secret and admin password. Do not expose it to others as it is.
 
 ## What it does
 
@@ -32,7 +64,7 @@ There are three roles. Admins create projects and change their settings. Members
 | [`src/app.rs`](src/app.rs) | Router setup, the shared HTML layout, and the layer that sets each request's language. |
 | [`src/app/_common.rs`](src/app/_common.rs) | Timestamps, role names, and other text shared by several pages. |
 | [`src/app/language.rs`](src/app/language.rs) | Language menu and the route that saves the choice. |
-| [`src/app/login.rs`](src/app/login.rs) | Sign-in form and request handler. |
+| [`src/app/login.rs`](src/app/login.rs) | Sign-in page, the redirect to Keycloak, and the return from it. |
 | [`src/app/_workspace.rs`](src/app/_workspace.rs) | Sign-in check, sidebar, and breadcrumbs. |
 | [`src/app/_workspace/_dashboard.rs`](src/app/_workspace/_dashboard.rs) | Workspace figures, your issues, and project progress. |
 | [`src/app/_workspace/projects.rs`](src/app/_workspace/projects.rs) | Project list and the project form fields. |

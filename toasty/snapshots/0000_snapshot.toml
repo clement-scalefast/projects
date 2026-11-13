@@ -11,7 +11,7 @@ primary_key = { columns = [{ table = 0, index = 0 }], index = { table = 0, index
 id = { table = 0, index = 0 }
 name = "id"
 ty = "U64"
-storage_ty = { UnsignedInteger = 4 }
+storage_ty = { UnsignedInteger = 8 }
 auto_increment = true
 
 [[schema.tables.columns]]
@@ -35,8 +35,8 @@ storage_ty = "Text"
 [[schema.tables.columns]]
 id = { table = 0, index = 4 }
 name = "created_at"
-ty = "String"
-storage_ty = "Text"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.indices]]
 id = { table = 0, index = 0 }
@@ -67,7 +67,7 @@ primary_key = { columns = [{ table = 1, index = 0 }], index = { table = 1, index
 id = { table = 1, index = 0 }
 name = "id"
 ty = "U64"
-storage_ty = { UnsignedInteger = 4 }
+storage_ty = { UnsignedInteger = 8 }
 auto_increment = true
 
 [[schema.tables.columns]]
@@ -128,27 +128,27 @@ storage_ty = { UnsignedInteger = 8 }
 [[schema.tables.columns]]
 id = { table = 1, index = 10 }
 name = "due_on"
-ty = "String"
-storage_ty = "Text"
+ty = "Date"
+storage_ty = "Date"
 nullable = true
 
 [[schema.tables.columns]]
 id = { table = 1, index = 11 }
 name = "created_at"
-ty = "String"
-storage_ty = "Text"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.columns]]
 id = { table = 1, index = 12 }
 name = "updated_at"
-ty = "String"
-storage_ty = "Text"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.columns]]
 id = { table = 1, index = 13 }
 name = "completed_at"
-ty = "String"
-storage_ty = "Text"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 nullable = true
 
 [[schema.tables.indices]]
@@ -199,7 +199,7 @@ primary_key = { columns = [{ table = 2, index = 0 }], index = { table = 2, index
 id = { table = 2, index = 0 }
 name = "id"
 ty = "U64"
-storage_ty = { UnsignedInteger = 4 }
+storage_ty = { UnsignedInteger = 8 }
 auto_increment = true
 
 [[schema.tables.columns]]
@@ -229,8 +229,8 @@ storage_ty = { UnsignedInteger = 8 }
 [[schema.tables.columns]]
 id = { table = 2, index = 5 }
 name = "created_at"
-ty = "String"
-storage_ty = "Text"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
 
 [[schema.tables.indices]]
 id = { table = 2, index = 0 }
@@ -262,7 +262,7 @@ primary_key = { columns = [{ table = 3, index = 0 }], index = { table = 3, index
 id = { table = 3, index = 0 }
 name = "id"
 ty = "U64"
-storage_ty = { UnsignedInteger = 4 }
+storage_ty = { UnsignedInteger = 8 }
 auto_increment = true
 
 [[schema.tables.columns]]
@@ -279,9 +279,10 @@ storage_ty = "Text"
 
 [[schema.tables.columns]]
 id = { table = 3, index = 3 }
-name = "password_hash"
+name = "subject"
 ty = "String"
 storage_ty = "Text"
+nullable = true
 
 [[schema.tables.columns]]
 id = { table = 3, index = 4 }
@@ -304,6 +305,13 @@ on = 3
 columns = [{ column = { table = 3, index = 2 }, op = "Eq", scope = "Partition" }]
 unique = true
 
+[[schema.tables.indices]]
+id = { table = 3, index = 2 }
+name = "index_users_by_subject"
+on = 3
+columns = [{ column = { table = 3, index = 3 }, op = "Eq", scope = "Partition" }]
+unique = true
+
 [[schema.tables]]
 id = 4
 name = "sessions"
@@ -324,8 +332,15 @@ storage_ty = { UnsignedInteger = 8 }
 [[schema.tables.columns]]
 id = { table = 4, index = 2 }
 name = "expires_at"
+ty = "Timestamp"
+storage_ty = { Timestamp = 6 }
+
+[[schema.tables.columns]]
+id = { table = 4, index = 3 }
+name = "id_token"
 ty = "String"
 storage_ty = "Text"
+nullable = true
 
 [[schema.tables.indices]]
 id = { table = 4, index = 0 }
